@@ -1,0 +1,4 @@
+build/
+output/
+plot/
+*.4coder
