@@ -161,18 +161,24 @@ static inline double HammingWindow(double ratio) {
 void LowpassWindowedSincFilterKernel(double Cutoff,
                                      int KernelSize,
                                      double *OutKernel) {
-    for (int i = 0; i <= KernelSize; ++i) {
-        if ((i - KernelSize / 2) == 0 ) OutKernel[i] = 2.0 * M_PI * Cutoff;
+
+    assert(KernelSize & 1); // Should be odd
+    int Window = KernelSize - 1;
+    int Center = Window / 2;
+    double x = 2.0 * M_PI * Cutoff;
+    for (int i = 0; i < KernelSize; ++i) {
+        int Distance = i - Center;
+        if (Distance == 0 ) OutKernel[i] = x;
         else {
-            OutKernel[i] = sin(2.0 * M_PI * Cutoff * (i-KernelSize/2)) / (i-KernelSize/2);
-            OutKernel[i] *= 0.54 - 0.46 * cos(2.0 * M_PI * i / KernelSize); // HammingWindow
+            OutKernel[i] = sin(x * ((double)Distance)) / ((double)Distance);
+            OutKernel[i] *= HammingWindow((double)i / (double)Window); // HammingWindow
         }
     }
 }
 
 void SpectralInversion(double *Kernel, int KernelSize) {
     for (int i = 0; i < KernelSize; ++i) {
-        Kernel[i] = -Kernel[i];
+        Kernel[i] = -(Kernel[i]);
     }
     Kernel[KernelSize / 2] += 1.0;
 }
@@ -323,7 +329,6 @@ int main(int argc, char **argv) {
     double Mag[KernelSize] = {0};
     double Phase[KernelSize] = {0};
     RectToPolar(FreqResp_REX, FreqResp_IMX, KernelSize, Mag, Phase);
-    //Convolution(InputSignal_f32_1kHz_15kHz, SignalLength, LowpassKernel, KernelSize, OutputLowpass);j
 
     OutputSignal("output/output_filter_kernel_mag.dat", &Mag[0], KernelSize);
     OutputSignal("output/output_filter_kernel_phase.dat", &Phase[0], KernelSize);
