@@ -187,8 +187,8 @@ void SpectralReversal(double *Kernel, int KernelSize) {
 
 void BandpassWindowedSincFilterKernel( double *LowCutoffBuffer, double *HighCutoffBuffer, double *Kernel, int KernelSize, double LowCutoff, double HighCutoff) {
     
-    LowpassWindowedSincFilterKernel(LowCutoff, KernelSize - 1, LowCutoffBuffer);
-    LowpassWindowedSincFilterKernel(HighCutoff, KernelSize - 1, HighCutoffBuffer);
+    LowpassWindowedSincFilterKernel(LowCutoff, KernelSize, LowCutoffBuffer);
+    LowpassWindowedSincFilterKernel(HighCutoff, KernelSize, HighCutoffBuffer);
     SpectralInversion(HighCutoffBuffer, KernelSize);
     
     for (int i = 0; i < KernelSize; ++i) {
@@ -313,6 +313,8 @@ int main(int argc, char **argv) {
             OutputLowpass[i] += Input[i - j] * LowpassKernel[j];
         }
     }
+    OutputSignal("output/output_filter_kernel_lowpass.dat", &LowpassKernel[0], KernelSize);
+    OutputSignal("output/output_filter_signal_lowpass.dat", &OutputLowpass[0], SignalLength);
 
     double FreqResp_REX[KernelSize] = {0};
     double FreqResp_IMX[KernelSize] = {0};
@@ -321,10 +323,7 @@ int main(int argc, char **argv) {
     double Mag[KernelSize] = {0};
     double Phase[KernelSize] = {0};
     RectToPolar(FreqResp_REX, FreqResp_IMX, KernelSize, Mag, Phase);
-
     //Convolution(InputSignal_f32_1kHz_15kHz, SignalLength, LowpassKernel, KernelSize, OutputLowpass);j
-    OutputSignal("output/output_filter_kernel_lowpass.dat", &LowpassKernel[0], KernelSize);
-    OutputSignal("output/output_filter_signal_lowpass.dat", &OutputLowpass[0], SignalLength);
 
     OutputSignal("output/output_filter_kernel_mag.dat", &Mag[0], KernelSize);
     OutputSignal("output/output_filter_kernel_phase.dat", &Phase[0], KernelSize);
